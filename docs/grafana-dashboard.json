@@ -1,0 +1,70 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "HTTP Request Latency (p95 & p99)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(amrutam_http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95 Latency (s)"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(amrutam_http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p99 Latency (s)"
+        }
+      ]
+    },
+    {
+      "title": "HTTP Requests Per Second by Status Code",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(amrutam_http_requests_total[5m])) by (status_code)",
+          "legendFormat": "Status {{status_code}}"
+        }
+      ]
+    },
+    {
+      "title": "Active Consultations Gauge",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "amrutam_active_consultations_total",
+          "legendFormat": "Active Consultations"
+        }
+      ]
+    },
+    {
+      "title": "Booking Saga Execution Status",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(amrutam_booking_saga_total[5m])) by (status)",
+          "legendFormat": "Status {{status}}"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["amrutam", "telemedicine", "production"],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "title": "Amrutam Telemedicine Observability Dashboard"
+}
