@@ -70,22 +70,33 @@ export async function cacheDel(key: string): Promise<void> {
   }
 }
 
+const inMemoryLocks = new Map<string, { lockId: string; expiresAt: number }>();
+
 /**
- * Distributed Lock (Redlock Single Instance Pattern)
+ * Distributed Lock (Redlock Single Instance Pattern with In-Memory Fallback)
  * Acquires lock using SET resource_key lock_id NX PX ttlMs
  */
 export async function acquireLock(resourceKey: string, lockId: string, ttlMs: number = 10000): Promise<boolean> {
   try {
-    const result = await redisClient.set(`lock:${resourceKey}`, lockId, 'PX', ttlMs, 'NX');
-    return result === 'OK';
+    if (redisClient && redisClient.status === 'ready') {
+      const result = await redisClient.set(`lock:${resourceKey}`, lockId, 'PX', ttlMs, 'NX');
+      return result === 'OK';
+    }
   } catch (err) {
-    logger.error({ resourceKey, error: (err as any).message }, 'Failed to acquire distributed lock from Redis');
+    logger.warn({ resourceKey, error: (err as any).message }, 'Failed to acquire distributed lock from Redis, using in-memory lock');
+  }
+
+  const now = Date.now();
+  const existing = inMemoryLocks.get(resourceKey);
+  if (existing && existing.expiresAt > now) {
     return false;
   }
+  inMemoryLocks.set(resourceKey, { lockId, expiresAt: now + ttlMs });
+  return true;
 }
 
 /**
- * Releases Distributed Lock using Lua script (atomically checks lockId before deleting)
+ * Releases Distributed Lock using Lua script or in-memory fallback
  */
 export async function releaseLock(resourceKey: string, lockId: string): Promise<boolean> {
   const luaScript = `
@@ -96,10 +107,18 @@ export async function releaseLock(resourceKey: string, lockId: string): Promise<
     end
   `;
   try {
-    const result = await redisClient.eval(luaScript, 1, `lock:${resourceKey}`, lockId);
-    return result === 1;
+    if (redisClient && redisClient.status === 'ready') {
+      const result = await redisClient.eval(luaScript, 1, `lock:${resourceKey}`, lockId);
+      return result === 1;
+    }
   } catch (err) {
-    logger.error({ resourceKey, error: (err as any).message }, 'Failed to release distributed lock');
-    return false;
+    logger.warn({ resourceKey, error: (err as any).message }, 'Failed to release distributed lock');
   }
+
+  const existing = inMemoryLocks.get(resourceKey);
+  if (existing && existing.lockId === lockId) {
+    inMemoryLocks.delete(resourceKey);
+    return true;
+  }
+  return false;
 }

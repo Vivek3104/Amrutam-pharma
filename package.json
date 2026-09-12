@@ -8,8 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "npm run build && node --watch dist/server.js",
-    "test": "jest --runInBand",
-    "test:coverage": "jest --coverage --runInBand",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage --runInBand",
     "seed": "npm run build && node dist/database/seed.js",
     "migrate": "npm run build && node dist/database/migrate.js",
     "lint": "eslint 'src/**/*.ts'"
