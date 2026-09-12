@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import type { PharmaProduct } from '../types';
 import { MOCK_PRODUCTS } from '../api/client';
-import { Star, ShoppingBag, ShieldCheck, Check, Search, IndianRupee, Sparkles, X, ArrowRight } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { Star, ShoppingBag, ShieldCheck, Check, Search, IndianRupee, Sparkles, X, ArrowRight, Plus } from 'lucide-react';
 
-interface PharmacyCatalogProps {
-  onAddToCart: (product: PharmaProduct) => void;
-}
-
-export const PharmacyCatalog: React.FC<PharmacyCatalogProps> = ({ onAddToCart }) => {
+export const PharmacyCatalog: React.FC = () => {
+  const { addToCart } = useCart();
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProductForOrder, setSelectedProductForOrder] = useState<PharmaProduct | null>(null);
   const [orderQuantity, setOrderQuantity] = useState(1);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const categories = [
     { id: 'ALL', label: 'All Formulations' },
@@ -32,6 +31,12 @@ export const PharmacyCatalog: React.FC<PharmacyCatalogProps> = ({ onAddToCart })
     return matchesCategory && matchesSearch;
   });
 
+  const handleAddToCartClick = (product: PharmaProduct) => {
+    addToCart(product, 1);
+    setToastMessage(`Added "${product.name}" to your Cart!`);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
     setOrderConfirmed(true);
@@ -39,6 +44,30 @@ export const PharmacyCatalog: React.FC<PharmacyCatalogProps> = ({ onAddToCart })
 
   return (
     <section className="container-responsive" style={{ padding: '40px 24px 60px 24px' }}>
+      {/* Notification Toast */}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 1000,
+          background: 'var(--bg-navy-surface)',
+          border: '1px solid var(--teal-primary)',
+          color: '#FFF',
+          padding: '12px 20px',
+          borderRadius: 'var(--radius-md)',
+          boxShadow: 'var(--shadow-glow)',
+          fontSize: '0.9rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}>
+          <Check size={18} color="var(--teal-glow)" />
+          {toastMessage}
+        </div>
+      )}
+
       {/* Section Header */}
       <div style={{ textAlign: 'center', marginBottom: '36px' }}>
         <span className="badge badge-teal" style={{ marginBottom: '10px' }}>
@@ -176,10 +205,10 @@ export const PharmacyCatalog: React.FC<PharmacyCatalogProps> = ({ onAddToCart })
               borderTop: '1px solid var(--border-subtle)',
               paddingTop: '14px',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              flexDirection: 'column',
+              gap: '12px',
             }}>
-              <div>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                   <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#FFF', display: 'flex', alignItems: 'center' }}>
                     <IndianRupee size={16} color="var(--teal-glow)" /> {product.price}
@@ -191,23 +220,32 @@ export const PharmacyCatalog: React.FC<PharmacyCatalogProps> = ({ onAddToCart })
                 <span style={{ fontSize: '0.7rem', color: 'var(--emerald-botanical)', fontWeight: 600 }}>In Stock • Direct Dispatch</span>
               </div>
 
-              <button
-                onClick={() => {
-                  onAddToCart(product);
-                  setSelectedProductForOrder(product);
-                  setOrderConfirmed(false);
-                }}
-                className="btn btn-teal"
-                style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-              >
-                <ShoppingBag size={16} /> Order Formula
-              </button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <button
+                  onClick={() => handleAddToCartClick(product)}
+                  className="btn btn-outline"
+                  style={{ padding: '8px 12px', fontSize: '0.82rem' }}
+                >
+                  <Plus size={14} /> Add to Cart
+                </button>
+
+                <button
+                  onClick={() => {
+                    setSelectedProductForOrder(product);
+                    setOrderConfirmed(false);
+                  }}
+                  className="btn btn-teal"
+                  style={{ padding: '8px 12px', fontSize: '0.82rem' }}
+                >
+                  <ShoppingBag size={14} /> Buy Now
+                </button>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Instant Order Modal */}
+      {/* Buy Now Order Modal */}
       {selectedProductForOrder && (
         <div className="modal-overlay" onClick={() => setSelectedProductForOrder(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>

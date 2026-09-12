@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { ShieldCheck, Phone, ShoppingBag, User, LogOut, Menu, X, Stethoscope, Pill, Calendar } from 'lucide-react';
 
 interface EnterpriseNavbarProps {
   activeTab: 'home' | 'pharmacy' | 'dashboard';
   setActiveTab: (tab: 'home' | 'pharmacy' | 'dashboard') => void;
-  cartCount: number;
 }
 
-export const EnterpriseNavbar: React.FC<EnterpriseNavbarProps> = ({ activeTab, setActiveTab, cartCount }) => {
+export const EnterpriseNavbar: React.FC<EnterpriseNavbarProps> = ({ activeTab, setActiveTab }) => {
   const { user, isAuthenticated, openAuthModal, logout } = useAuth();
+  const { cartCount, openCart } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -112,9 +113,9 @@ export const EnterpriseNavbar: React.FC<EnterpriseNavbarProps> = ({ activeTab, s
           <div className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {/* Cart Pill */}
             <button
-              onClick={() => setActiveTab('pharmacy')}
+              onClick={openCart}
               className="btn btn-outline"
-              style={{ position: 'relative', padding: '8px 16px' }}
+              style={{ position: 'relative', padding: '8px 16px', borderColor: cartCount > 0 ? 'var(--teal-primary)' : undefined }}
             >
               <ShoppingBag size={18} color="var(--teal-glow)" />
               <span style={{ fontSize: '0.85rem' }}>Cart</span>
@@ -122,14 +123,10 @@ export const EnterpriseNavbar: React.FC<EnterpriseNavbarProps> = ({ activeTab, s
                 <span style={{
                   background: 'var(--emerald-botanical)',
                   color: '#FFF',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  borderRadius: '50%',
-                  width: '18px',
-                  height: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  borderRadius: 'var(--radius-full)',
+                  padding: '2px 8px',
                   marginLeft: '4px',
                 }}>
                   {cartCount}
@@ -205,7 +202,15 @@ export const EnterpriseNavbar: React.FC<EnterpriseNavbarProps> = ({ activeTab, s
             className={`btn ${activeTab === 'pharmacy' ? 'btn-teal' : 'btn-outline'}`}
             style={{ width: '100%', justifyContent: 'flex-start' }}
           >
-            <Pill size={18} /> Amrutam Pharmacy Catalog ({cartCount})
+            <Pill size={18} /> Amrutam Pharmacy Catalog
+          </button>
+
+          <button
+            onClick={() => { setIsMobileMenuOpen(false); openCart(); }}
+            className="btn btn-teal"
+            style={{ width: '100%', justifyContent: 'flex-start' }}
+          >
+            <ShoppingBag size={18} /> View Cart ({cartCount} Items)
           </button>
 
           <button
