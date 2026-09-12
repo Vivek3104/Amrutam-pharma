@@ -8,10 +8,12 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAuthModalOpen: boolean;
   authMode: 'login' | 'register';
-  openAuthModal: (mode?: 'login' | 'register') => void;
+  authRole: UserRole;
+  openAuthModal: (mode?: 'login' | 'register', role?: UserRole) => void;
   closeAuthModal: () => void;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, fullName: string, role: UserRole, phone?: string) => Promise<void>;
+  setAuthRole: (role: UserRole) => void;
+  login: (email: string, password: string, role?: UserRole) => Promise<void>;
+  register: (email: string, password: string, fullName: string, role: UserRole, phone?: string, extraData?: any) => Promise<void>;
   logout: () => void;
 }
 
@@ -25,17 +27,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('amrutam_token'));
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [authRole, setAuthRole] = useState<UserRole>('PATIENT');
 
-  const openAuthModal = (mode: 'login' | 'register' = 'login') => {
+  const openAuthModal = (mode: 'login' | 'register' = 'login', role: UserRole = 'PATIENT') => {
     setAuthMode(mode);
+    setAuthRole(role);
     setIsAuthModalOpen(true);
   };
 
   const closeAuthModal = () => setIsAuthModalOpen(false);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, roleRequested: UserRole = authRole) => {
     try {
-      const response = await apiClient.post('/auth/login', { email, password });
+      const response = await apiClient.post('/auth/login', { email, password, role: roleRequested });
       const { user: userData, token: userToken } = response.data;
       setUser(userData);
       setToken(userToken);
@@ -43,11 +47,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('amrutam_token', userToken);
       closeAuthModal();
     } catch (err: any) {
+      // Fallback local auth simulation with selected role
       const mockUser: User = {
-        id: 'u-local-' + Date.now(),
+        id: roleRequested === 'DOCTOR' ? 'doc-1' : 'u-local-' + Date.now(),
         email,
-        fullName: email.split('@')[0],
-        role: 'PATIENT',
+        fullName: roleRequested === 'DOCTOR' ? `Dr. ${email.split('@')[0]}` : email.split('@')[0],
+        role: roleRequested,
+        doctorProfile: roleRequested === 'DOCTOR' ? {
+          id: 'doc-prof-1',
+          specialization: 'Senior Ayurvedic Physician',
+          registrationNo: 'AYUSH-DEL-2012-8841',
+          hospitalAffiliation: 'Amrutam Research Institute',
+          experienceYears: 12,
+          consultationFee: 750,
+        } : null,
       };
       const mockToken = 'mock-jwt-token-' + Date.now();
       setUser(mockUser);
@@ -58,14 +71,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, fullName: string, role: UserRole, phone?: string) => {
+  const register = async (email: string, password: string, fullName: string, roleRequested: UserRole, phone?: string, extraData?: any) => {
     try {
       const response = await apiClient.post('/auth/register', {
         email,
         password,
         fullName,
-        role,
+        role: roleRequested,
         phone,
+        ...extraData,
       });
       const { user: userData, token: userToken } = response.data;
       setUser(userData);
@@ -75,11 +89,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       closeAuthModal();
     } catch (err: any) {
       const mockUser: User = {
-        id: 'u-local-' + Date.now(),
+        id: roleRequested === 'DOCTOR' ? 'doc-' + Date.now() : 'u-local-' + Date.now(),
         email,
-        fullName,
-        role,
+        fullName: roleRequested === 'DOCTOR' && !fullName.startsWith('Dr.') ? `Dr. ${fullName}` : fullName,
+        role: roleRequested,
         phone,
+        doctorProfile: roleRequested === 'DOCTOR' ? {
+          id: 'doc-prof-' + Date.now(),
+          specialization: extraData?.specialization || 'Ayurvedic General Physician',
+          registrationNo: extraData?.registrationNo || 'AYUSH-REG-' + Math.floor(1000 + Math.random() * 9000),
+          hospitalAffiliation: extraData?.hospitalAffiliation || 'Amrutam Wellness Clinic',
+          experienceYears: extraData?.experienceYears || 5,
+          consultationFee: extraData?.consultationFee || 500,
+        } : null,
       };
       const mockToken = 'mock-jwt-token-' + Date.now();
       setUser(mockUser);
@@ -105,8 +127,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isAuthModalOpen,
         authMode,
+        authRole,
         openAuthModal,
         closeAuthModal,
+        setAuthRole,
         login,
         register,
         logout,

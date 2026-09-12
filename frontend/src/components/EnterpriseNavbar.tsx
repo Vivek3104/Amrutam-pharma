@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ShieldCheck, Phone, ShoppingBag, User, LogOut, Menu, X, Stethoscope, Pill, Calendar } from 'lucide-react';
+import { ShieldCheck, Phone, ShoppingBag, User, LogOut, Menu, X, Stethoscope, Pill, Calendar, Heart } from 'lucide-react';
 
 interface EnterpriseNavbarProps {
   activeTab: 'home' | 'pharmacy' | 'dashboard';
@@ -99,13 +99,13 @@ export const EnterpriseNavbar: React.FC<EnterpriseNavbarProps> = ({ activeTab, s
 
             <button
               onClick={() => {
-                if (!isAuthenticated) openAuthModal('login');
+                if (!isAuthenticated) openAuthModal('login', 'PATIENT');
                 else setActiveTab('dashboard');
               }}
               className={`btn ${activeTab === 'dashboard' ? 'btn-teal' : 'btn-outline'}`}
               style={{ fontSize: '0.88rem' }}
             >
-              <Calendar size={16} /> Patient Portal
+              <Calendar size={16} /> {user?.role === 'DOCTOR' ? 'Doctor Portal' : 'Patient Portal'}
             </button>
           </nav>
 
@@ -136,15 +136,19 @@ export const EnterpriseNavbar: React.FC<EnterpriseNavbarProps> = ({ activeTab, s
 
             {isAuthenticated ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  background: 'var(--teal-light)',
-                  border: '1px solid rgba(0, 173, 181, 0.35)',
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-full)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}>
+                <div 
+                  onClick={() => setActiveTab('dashboard')}
+                  style={{
+                    background: 'var(--teal-light)',
+                    border: '1px solid rgba(0, 173, 181, 0.35)',
+                    padding: '6px 14px',
+                    borderRadius: 'var(--radius-full)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                  }}
+                >
                   <User size={16} color="var(--teal-glow)" />
                   <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {user?.fullName || user?.email}
@@ -157,11 +161,11 @@ export const EnterpriseNavbar: React.FC<EnterpriseNavbarProps> = ({ activeTab, s
               </div>
             ) : (
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={() => openAuthModal('login')} className="btn btn-outline" style={{ fontSize: '0.88rem' }}>
-                  Login
+                <button onClick={() => openAuthModal('login', 'PATIENT')} className="btn btn-outline" style={{ fontSize: '0.82rem' }}>
+                  <Heart size={14} color="var(--emerald-botanical)" /> Patient Login
                 </button>
-                <button onClick={() => openAuthModal('register')} className="btn btn-teal" style={{ fontSize: '0.88rem' }}>
-                  Register
+                <button onClick={() => openAuthModal('login', 'DOCTOR')} className="btn btn-teal" style={{ fontSize: '0.82rem' }}>
+                  <Stethoscope size={14} /> Doctor Login
                 </button>
               </div>
             )}
@@ -216,13 +220,13 @@ export const EnterpriseNavbar: React.FC<EnterpriseNavbarProps> = ({ activeTab, s
           <button
             onClick={() => {
               setIsMobileMenuOpen(false);
-              if (!isAuthenticated) openAuthModal('login');
+              if (!isAuthenticated) openAuthModal('login', 'PATIENT');
               else setActiveTab('dashboard');
             }}
             className={`btn ${activeTab === 'dashboard' ? 'btn-teal' : 'btn-outline'}`}
             style={{ width: '100%', justifyContent: 'flex-start' }}
           >
-            <Calendar size={18} /> My Consultations & Orders
+            <Calendar size={18} /> {user?.role === 'DOCTOR' ? 'Doctor Portal' : 'Patient Portal'}
           </button>
 
           <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', marginTop: '4px' }}>
@@ -232,11 +236,11 @@ export const EnterpriseNavbar: React.FC<EnterpriseNavbarProps> = ({ activeTab, s
               </button>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <button onClick={() => { setIsMobileMenuOpen(false); openAuthModal('login'); }} className="btn btn-outline">
-                  Login
+                <button onClick={() => { setIsMobileMenuOpen(false); openAuthModal('login', 'PATIENT'); }} className="btn btn-outline" style={{ fontSize: '0.8rem' }}>
+                  🌿 Patient Login
                 </button>
-                <button onClick={() => { setIsMobileMenuOpen(false); openAuthModal('register'); }} className="btn btn-teal">
-                  Register
+                <button onClick={() => { setIsMobileMenuOpen(false); openAuthModal('login', 'DOCTOR'); }} className="btn btn-teal" style={{ fontSize: '0.8rem' }}>
+                  🩺 Doctor Login
                 </button>
               </div>
             )}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { EnterpriseNavbar } from './components/EnterpriseNavbar';
 import { CartDrawer } from './components/CartDrawer';
@@ -7,10 +7,12 @@ import { AuthModal } from './components/AuthModal';
 import { Home } from './pages/Home';
 import { PharmacyCatalog } from './components/PharmacyCatalog';
 import { Dashboard } from './pages/Dashboard';
+import { DoctorDashboard } from './pages/DoctorDashboard';
 import { ShieldCheck, Heart, Building2, Mail, Phone, MapPin } from 'lucide-react';
 
 export const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'pharmacy' | 'dashboard'>('home');
+  const { user } = useAuth();
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-navy-dark)' }}>
@@ -28,13 +30,15 @@ export const AppContent: React.FC = () => {
 
         {activeTab === 'pharmacy' && <PharmacyCatalog />}
 
-        {activeTab === 'dashboard' && <Dashboard />}
+        {activeTab === 'dashboard' && (
+          user?.role === 'DOCTOR' ? <DoctorDashboard /> : <Dashboard />
+        )}
       </main>
 
       {/* Slide-over Shopping Cart Drawer */}
       <CartDrawer />
 
-      {/* Auth Modal */}
+      {/* Role-Separated Auth Modal */}
       <AuthModal />
 
       {/* Corporate Enterprise Footer */}
@@ -71,7 +75,7 @@ export const AppContent: React.FC = () => {
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem' }}>
                 <li><a onClick={() => setActiveTab('home')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Doctor Teleconsultation Clinic</a></li>
                 <li><a onClick={() => setActiveTab('pharmacy')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Amrutam Pharmacy Catalog</a></li>
-                <li><a onClick={() => setActiveTab('dashboard')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Patient Portal & e-Prescriptions</a></li>
+                <li><a onClick={() => setActiveTab('dashboard')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Patient & Doctor Portal</a></li>
               </ul>
             </div>
 
