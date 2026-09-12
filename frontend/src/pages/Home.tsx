@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Hero } from '../components/Hero';
+import { EnterpriseHero } from '../components/EnterpriseHero';
 import { DoctorCard } from '../components/DoctorCard';
 import { BookingModal } from '../components/BookingModal';
+import { TrustCompliance } from '../components/TrustCompliance';
 import type { Doctor } from '../types';
 import { apiClient, MOCK_DOCTORS } from '../api/client';
-import { Sparkles, ShieldCheck, HeartPulse } from 'lucide-react';
+import { Search, HeartPulse, Stethoscope } from 'lucide-react';
 
-export const Home: React.FC = () => {
+interface HomeProps {
+  onExplorePharmacyClick: () => void;
+}
+
+export const Home: React.FC<HomeProps> = ({ onExplorePharmacyClick }) => {
   const [doctors, setDoctors] = useState<Doctor[]>(MOCK_DOCTORS);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('All Specialties');
@@ -26,6 +31,14 @@ export const Home: React.FC = () => {
     fetchDoctors();
   }, []);
 
+  const specialties = [
+    'All Specialties',
+    'Kayachikitsa & General Medicine',
+    'Skin & Dermatology',
+    'Women Health',
+    'Gut Health & Digestion',
+  ];
+
   const filteredDoctors = doctors.filter((doc) => {
     const matchesSearch =
       doc.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -41,33 +54,69 @@ export const Home: React.FC = () => {
 
   return (
     <div>
-      {/* Hero Header */}
-      <Hero
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        selectedSpecialty={selectedSpecialty}
-        setSelectedSpecialty={setSelectedSpecialty}
+      {/* Enterprise Hero Banner */}
+      <EnterpriseHero
+        onBookDoctorClick={() => {
+          const el = document.getElementById('doctor-clinic');
+          el?.scrollIntoView({ behavior: 'smooth' });
+        }}
+        onExplorePharmacyClick={onExplorePharmacyClick}
       />
 
-      {/* Main Doctor Discovery Grid */}
-      <section style={{ maxWidth: '1240px', margin: '0 auto 60px auto', padding: '0 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
-          <div>
-            <h2 style={{ fontSize: '1.8rem', color: '#FFF', marginBottom: '4px' }}>
-              Available Ayurvedic Practitioners
-            </h2>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Showing {filteredDoctors.length} verified doctors available for instant consultation
-            </p>
+      {/* Main Virtual Doctor Clinic */}
+      <section id="doctor-clinic" className="container-responsive" style={{ padding: '60px 24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+          <span className="badge badge-teal" style={{ marginBottom: '10px' }}>
+            <Stethoscope size={12} /> Amrutam Virtual Medical Clinic
+          </span>
+          <h2 style={{ fontSize: '2.2rem', color: '#FFF', marginBottom: '8px' }}>
+            Consult Licensed Ayurvedic Vaidyas & Physicians
+          </h2>
+          <p style={{ color: 'var(--text-muted)', maxWidth: '680px', margin: '0 auto', fontSize: '0.98rem' }}>
+            Schedule high-definition video consultations with senior doctors holding verified AYUSH registration.
+          </p>
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div className="glass-panel" style={{ padding: '16px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ position: 'relative' }}>
+              <Search size={20} color="var(--teal-primary)" style={{ position: 'absolute', left: '16px', top: '14px' }} />
+              <input
+                type="text"
+                placeholder="Search doctors by name, medical specialty, or registration ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input-field"
+                style={{ paddingLeft: '48px', fontSize: '0.95rem' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {specialties.map((spec) => {
+                const isSelected = selectedSpecialty === spec;
+                return (
+                  <button
+                    key={spec}
+                    onClick={() => setSelectedSpecialty(spec)}
+                    className={`btn ${isSelected ? 'btn-teal' : 'btn-outline'}`}
+                    style={{ fontSize: '0.82rem', padding: '6px 16px', borderRadius: 'var(--radius-full)' }}
+                  >
+                    {spec}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
+        {/* Doctors Grid */}
         {filteredDoctors.length === 0 ? (
           <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
-            <HeartPulse size={48} color="var(--accent-gold)" style={{ marginBottom: '12px' }} />
-            <h3 style={{ fontSize: '1.2rem', color: '#FFF' }}>No Doctors Found</h3>
+            <HeartPulse size={48} color="var(--amber-gold)" style={{ marginBottom: '12px' }} />
+            <h3 style={{ fontSize: '1.2rem', color: '#FFF' }}>No Physicians Found</h3>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Try searching with a different keyword or resetting your specialty filter.
+              Try adjusting your query or resetting your specialty filter.
             </p>
           </div>
         ) : (
@@ -87,44 +136,8 @@ export const Home: React.FC = () => {
         )}
       </section>
 
-      {/* Amrutam Telemedicine Value Proposition */}
-      <section style={{
-        background: 'rgba(15, 45, 35, 0.4)',
-        borderTop: '1px solid var(--border-glass)',
-        borderBottom: '1px solid var(--border-glass)',
-        padding: '60px 24px',
-        textAlign: 'center',
-      }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: '2rem', color: '#FFF', marginBottom: '16px' }}>
-            Why Choose <span style={{ color: 'var(--accent-gold)' }}>Amrutam Telemedicine</span>?
-          </h2>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '24px',
-            marginTop: '36px',
-          }}>
-            <div className="glass-panel" style={{ padding: '24px', textAlign: 'left' }}>
-              <div style={{ color: 'var(--accent-gold)', marginBottom: '12px' }}><Sparkles size={32} /></div>
-              <h4 style={{ fontSize: '1.1rem', color: '#FFF', marginBottom: '8px' }}>Personalized Ayurvedic Care</h4>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Customized Prakriti evaluation and tailored herbal prescription recommendations directly from senior doctors.</p>
-            </div>
-
-            <div className="glass-panel" style={{ padding: '24px', textAlign: 'left' }}>
-              <div style={{ color: 'var(--accent-mint)', marginBottom: '12px' }}><ShieldCheck size={32} /></div>
-              <h4 style={{ fontSize: '1.1rem', color: '#FFF', marginBottom: '8px' }}>Idempotent & Secure Saga</h4>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Built on zero double-booking concurrency guarantees and enterprise AES-256 data protection.</p>
-            </div>
-
-            <div className="glass-panel" style={{ padding: '24px', textAlign: 'left' }}>
-              <div style={{ color: 'var(--accent-gold)', marginBottom: '12px' }}><HeartPulse size={32} /></div>
-              <h4 style={{ fontSize: '1.1rem', color: '#FFF', marginBottom: '8px' }}>Seamless Video Follow-Ups</h4>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Connect with your practitioner anywhere in high-definition video with integrated live chat.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Trust & Compliance Section */}
+      <TrustCompliance />
 
       {/* Booking Modal */}
       {selectedDoctorForBooking && (

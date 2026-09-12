@@ -1,8 +1,10 @@
-export type UserRole = 'PATIENT' | 'DOCTOR' | 'ADMIN';
+export type UserRole = 'PATIENT' | 'DOCTOR' | 'PHARMACIST' | 'ADMIN';
 
 export interface DoctorProfile {
   id: string;
   specialization: string;
+  registrationNo: string;
+  hospitalAffiliation: string;
   experienceYears: number;
   consultationFee: number;
   bio?: string;
@@ -32,12 +34,30 @@ export interface Doctor {
   userId: string;
   fullName: string;
   specialization: string;
+  registrationNo: string;
+  hospitalAffiliation: string;
   experienceYears: number;
   consultationFee: number;
   rating: number;
   bio: string;
   imageUrl: string;
   availableSlots: AvailabilitySlot[];
+}
+
+export interface PharmaProduct {
+  id: string;
+  name: string;
+  category: 'AYURVEDIC_MALT' | 'HERBAL_OIL' | 'DIGESTIVE_CARE' | 'SKIN_HAIR' | 'SUPPLEMENT';
+  dosageForm: string;
+  price: number;
+  originalPrice: number;
+  rating: number;
+  reviewsCount: number;
+  description: string;
+  keyIngredients: string[];
+  imageUrl: string;
+  inStock: boolean;
+  gmpCertified: boolean;
 }
 
 export type ConsultationType = 'AUDIO' | 'VIDEO' | 'CHAT';
