@@ -1,4 +1,4 @@
-export type UserRole = 'PATIENT' | 'DOCTOR' | 'PHARMACIST' | 'ADMIN';
+export type UserRole = 'CUSTOMER' | 'ADMIN' | 'PATIENT' | 'DOCTOR' | 'PHARMACIST';
 
 export interface DoctorProfile {
   id: string;
@@ -75,6 +75,7 @@ export interface Consultation {
   patientId: string;
   doctorId: string;
   doctorName?: string;
+  patientName?: string;
   slotId: string;
   status: ConsultationStatus;
   type: ConsultationType;

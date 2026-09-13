@@ -4,8 +4,9 @@ import { config } from '../config/index.js';
 
 export interface AuthenticatedUser {
   id: string;
-  email: string;
-  role: 'PATIENT' | 'DOCTOR' | 'ADMIN';
+  email?: string;
+  phone?: string;
+  role: 'CUSTOMER' | 'ADMIN' | 'PATIENT' | 'DOCTOR';
   mfaVerified?: boolean;
 }
 

@@ -1,14 +1,23 @@
 import { Router } from 'express';
-import { AuthController } from '../controllers/auth.controller.js';
+import { authController } from '../controllers/auth.controller.js';
 import { authenticate } from '../middlewares/auth.js';
-import { auditLogger } from '../middlewares/auditLogger.js';
 
 const router = Router();
-const controller = new AuthController();
 
-router.post('/register', auditLogger('REGISTER', 'users'), (req, res, next) => controller.register(req, res, next));
-router.post('/login', auditLogger('LOGIN', 'users'), (req, res, next) => controller.login(req, res, next));
-router.post('/mfa/setup', authenticate, auditLogger('SETUP_MFA', 'users'), (req, res, next) => controller.setupMFA(req, res, next));
-router.post('/mfa/verify', authenticate, auditLogger('VERIFY_MFA', 'users'), (req, res, next) => controller.verifyMFA(req, res, next));
+// Customer Login: Mobile Number & OTP
+router.post('/otp/send', (req, res) => authController.sendCustomerOtp(req, res));
+router.post('/otp/verify', (req, res) => authController.verifyCustomerOtp(req, res));
+router.post('/customer/send-otp', (req, res) => authController.sendCustomerOtp(req, res));
+router.post('/customer/verify-otp', (req, res) => authController.verifyCustomerOtp(req, res));
+
+// Admin Login: Identifier + Password / OTP
+router.post('/admin/login', (req, res) => authController.adminLogin(req, res));
+
+// Current User Profile
+router.get('/me', authenticate, (req, res) => authController.me(req, res));
+
+// Backward-compatible endpoints
+router.post('/login', (req, res, next) => authController.login(req, res, next));
+router.post('/register', (req, res) => authController.register(req, res));
 
 export default router;

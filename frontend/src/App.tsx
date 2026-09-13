@@ -1,119 +1,259 @@
 import React, { useState } from 'react';
+import { Hero, type HeroSlide, HERO_SLIDES } from './components/Hero';
+import { ProductDetailsPage } from './pages/ProductDetailsPage';
+import { CategoryProductsPage, ALL_AMRUTAM_PRODUCTS } from './pages/CategoryProductsPage';
+import { SpotlightProductDetailsPage } from './pages/SpotlightProductDetailsPage';
+import { BlogDetailsPage } from './pages/BlogDetailsPage';
+import { HealingConcernsSection, type HealingConcern } from './components/HealingConcernsSection';
+import { EverythingAmrutamOffersSection } from './components/EverythingAmrutamOffersSection';
+import { PressAndSpotlightSection } from './components/PressAndSpotlightSection';
+import { RediscoveringSelfSection } from './components/RediscoveringSelfSection';
+import { Footer } from './components/Footer';
+import { FloatingSupportWidget } from './components/FloatingSupportWidget';
+
+// Cart & Auth Contexts & Modals
+import { CartProvider, useCart } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { CartProvider } from './context/CartContext';
-import { EnterpriseNavbar } from './components/EnterpriseNavbar';
 import { CartDrawer } from './components/CartDrawer';
 import { AuthModal } from './components/AuthModal';
-import { Home } from './pages/Home';
-import { PharmacyCatalog } from './components/PharmacyCatalog';
-import { Dashboard } from './pages/Dashboard';
-import { DoctorDashboard } from './pages/DoctorDashboard';
-import { ShieldCheck, Heart, Building2, Mail, Phone, MapPin } from 'lucide-react';
+import { SearchModal, type SearchItem } from './components/SearchModal';
+import { FlashDealsModal } from './components/FlashDealsModal';
+import { CommunityModal } from './components/CommunityModal';
+import { AboutUsModal } from './components/AboutUsModal';
+import { PhoneSupportModal } from './components/PhoneSupportModal';
+import { AdminDashboardModal } from './components/AdminDashboardModal';
+import { OrderTrackingModal } from './components/OrderTrackingModal';
 
-export const AppContent: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'home' | 'pharmacy' | 'dashboard'>('home');
-  const { user } = useAuth();
+const AppContent: React.FC = () => {
+  const [currentView, setCurrentView] = useState<'hero' | 'product-details' | 'category-products' | 'spotlight-product' | 'blog-details'>('hero');
+  const [selectedSlide, setSelectedSlide] = useState<HeroSlide | undefined>(undefined);
+  const [selectedCategory, setSelectedCategory] = useState<string>('shop-all');
+  const [selectedSpotlightId, setSelectedSpotlightId] = useState<string>('healthy-soft-hair');
+  const [selectedBlogId, setSelectedBlogId] = useState<string>('episode-1');
+  const [activeHeroIndex, setActiveHeroIndex] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState('All Specialties');
+
+  // Modals state
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isFlashDealsOpen, setIsFlashDealsOpen] = useState(false);
+  const [isCommunityOpen, setIsCommunityOpen] = useState(false);
+  const [isAboutUsOpen, setIsAboutUsOpen] = useState(false);
+  const [isPhoneSupportOpen, setIsPhoneSupportOpen] = useState(false);
+  const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
+  const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState(false);
+  const [trackedOrderRef, setTrackedOrderRef] = useState<string | undefined>(undefined);
+
+  const handleOpenTracking = (orderRefOrPhone?: string) => {
+    setTrackedOrderRef(orderRefOrPhone);
+    setIsOrderTrackingOpen(true);
+  };
+
+  const { openCart } = useCart();
+  const { openAuthModal } = useAuth();
+
+  const handleKnowMore = (slide: HeroSlide) => {
+    setSelectedSlide(slide);
+    setCurrentView('product-details');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBackToHome = () => {
+    setCurrentView('hero');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectConcern = (concern: HealingConcern) => {
+    setSelectedCategory(concern.id);
+    if (concern.slideIndex !== undefined) {
+      setActiveHeroIndex(concern.slideIndex);
+    }
+    setCurrentView('category-products');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectOffersCategory = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setCurrentView('category-products');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectCategoryTab = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setCurrentView('category-products');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectSpotlightProduct = (spotlightId: string) => {
+    setSelectedSpotlightId(spotlightId);
+    setCurrentView('spotlight-product');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectBlog = (blogId: string) => {
+    setSelectedBlogId(blogId);
+    setCurrentView('blog-details');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenBlog = () => {
+    if (currentView !== 'hero') {
+      setCurrentView('hero');
+      setTimeout(() => {
+        const blogElem = document.getElementById('rediscovering-self-section');
+        if (blogElem) {
+          blogElem.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      const blogElem = document.getElementById('rediscovering-self-section');
+      if (blogElem) {
+        blogElem.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleOpenProductDetails = (slideId?: number) => {
+    if (slideId !== undefined) {
+      const slide = HERO_SLIDES.find((s) => s.id === slideId) || HERO_SLIDES[0];
+      setSelectedSlide(slide);
+      setCurrentView('product-details');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const searchItems: SearchItem[] = ALL_AMRUTAM_PRODUCTS.map((p) => ({
+    id: p.id,
+    name: p.name,
+    category: p.categoryTag ? p.categoryTag.toUpperCase() : 'HERBAL REMEDY',
+    price: p.minPrice,
+    priceRange: p.priceRange,
+    rating: p.rating,
+    reviewCount: p.reviewCount,
+    image: p.bannerImage,
+    badge: p.badge,
+    slideId: p.slideId,
+    categoryId: p.categoryTag || 'shop-all',
+  }));
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-navy-dark)' }}>
-      {/* Enterprise Navigation Header */}
-      <EnterpriseNavbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
+    <div style={{ minHeight: '100vh', background: '#FAF5EE' }}>
+      {currentView === 'hero' && (
+        <>
+          <Hero
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedSpecialty={selectedSpecialty}
+            setSelectedSpecialty={setSelectedSpecialty}
+            onSelectCategory={handleSelectCategoryTab}
+            onOpenAuth={() => openAuthModal('CUSTOMER')}
+            onOpenAdminDashboard={() => setIsAdminDashboardOpen(true)}
+            onOpenTracking={() => handleOpenTracking()}
+            onOpenCart={openCart}
+            onOpenSearch={() => setIsSearchOpen(true)}
+            onOpenZap={() => setIsFlashDealsOpen(true)}
+            onOpenPhone={() => setIsPhoneSupportOpen(true)}
+            onOpenCommunity={() => setIsCommunityOpen(true)}
+            onOpenBlog={handleOpenBlog}
+            onOpenAboutUs={() => setIsAboutUsOpen(true)}
+            onKnowMoreClick={handleKnowMore}
+            activeSlideIndex={activeHeroIndex}
+            onSlideChange={setActiveHeroIndex}
+          />
+          <HealingConcernsSection onSelectConcern={handleSelectConcern} />
+          <EverythingAmrutamOffersSection onSelectCategory={handleSelectOffersCategory} />
+          <PressAndSpotlightSection
+            onSelectCategory={handleSelectOffersCategory}
+            onSelectSpotlightProduct={handleSelectSpotlightProduct}
+          />
+          <RediscoveringSelfSection onSelectBlog={handleSelectBlog} />
+        </>
+      )}
+
+      {currentView === 'blog-details' && (
+        <BlogDetailsPage
+          blogId={selectedBlogId}
+          onBackToHome={handleBackToHome}
+          onSelectBlog={handleSelectBlog}
+        />
+      )}
+
+      {currentView === 'spotlight-product' && (
+        <SpotlightProductDetailsPage
+          spotlightId={selectedSpotlightId}
+          onBackToHome={handleBackToHome}
+        />
+      )}
+
+      {currentView === 'category-products' && (
+        <CategoryProductsPage
+          categoryId={selectedCategory}
+          onBackToHome={handleBackToHome}
+          onOpenProductDetails={handleOpenProductDetails}
+          onOpenCart={openCart}
+          onOpenSearch={() => setIsSearchOpen(true)}
+          onOpenPhone={() => setIsPhoneSupportOpen(true)}
+        />
+      )}
+
+      {currentView === 'product-details' && (
+        <ProductDetailsPage
+          slide={selectedSlide}
+          onBackToHome={handleBackToHome}
+        />
+      )}
+
+      {/* Amrutam Footer at the last */}
+      <Footer />
+
+      {/* Floating Need Help + Scroll-to-Top Widget */}
+      <FloatingSupportWidget />
+
+      {/* Global Modals & Drawers */}
+      <CartDrawer onOpenTracking={handleOpenTracking} />
+      <AuthModal
+        onOpenAdminDashboard={() => setIsAdminDashboardOpen(true)}
+        onOpenTracking={handleOpenTracking}
       />
-
-      {/* Dynamic Page Views */}
-      <main style={{ flex: 1 }}>
-        {activeTab === 'home' && (
-          <Home onExplorePharmacyClick={() => setActiveTab('pharmacy')} />
-        )}
-
-        {activeTab === 'pharmacy' && <PharmacyCatalog />}
-
-        {activeTab === 'dashboard' && (
-          user?.role === 'DOCTOR' ? <DoctorDashboard /> : <Dashboard />
-        )}
-      </main>
-
-      {/* Slide-over Shopping Cart Drawer */}
-      <CartDrawer />
-
-      {/* Role-Separated Auth Modal */}
-      <AuthModal />
-
-      {/* Corporate Enterprise Footer */}
-      <footer style={{
-        borderTop: '1px solid var(--border-card)',
-        background: '#040C16',
-        padding: '50px 0 30px 0',
-        marginTop: 'auto',
-      }}>
-        <div className="container-responsive">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '32px',
-            marginBottom: '40px',
-          }}>
-            {/* Brand & ISO */}
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <Building2 size={24} color="var(--teal-glow)" />
-                <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#FFF' }}>AMRUTAM PHARMACEUTICALS</span>
-              </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '14px' }}>
-                Enterprise Telemedicine & GMP-certified Classical Ayurvedic Formulations. ISO 9001:2026 Certified Facility.
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--emerald-botanical)', fontSize: '0.8rem', fontWeight: 600 }}>
-                <ShieldCheck size={16} /> AYUSH Ministry License No: AYU-DEL-4011
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 style={{ color: '#FFF', fontSize: '0.95rem', marginBottom: '14px' }}>Quick Portals</h4>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem' }}>
-                <li><a onClick={() => setActiveTab('home')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Doctor Teleconsultation Clinic</a></li>
-                <li><a onClick={() => setActiveTab('pharmacy')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Amrutam Pharmacy Catalog</a></li>
-                <li><a onClick={() => setActiveTab('dashboard')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Patient & Doctor Portal</a></li>
-              </ul>
-            </div>
-
-            {/* Contact & Support */}
-            <div>
-              <h4 style={{ color: '#FFF', fontSize: '0.95rem', marginBottom: '14px' }}>Corporate Headquarters</h4>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MapPin size={16} color="var(--teal-glow)" /> Amrutam House, Institutional Area, New Delhi
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Phone size={16} color="var(--teal-glow)" /> 1800-AMRUTAM (Toll Free 24/7)
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Mail size={16} color="var(--teal-glow)" /> support@amrutam.co
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div style={{
-            borderTop: '1px solid var(--border-subtle)',
-            paddingTop: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px',
-            fontSize: '0.8rem',
-            color: 'var(--text-dim)',
-          }}>
-            <p>© 2026 Amrutam Pharmaceuticals Ltd. All rights reserved.</p>
-            <p style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Crafted for Amrutam Client Team <Heart size={12} color="#EF4444" fill="#EF4444" />
-            </p>
-          </div>
-        </div>
-      </footer>
+      <AdminDashboardModal
+        isOpen={isAdminDashboardOpen}
+        onClose={() => setIsAdminDashboardOpen(false)}
+      />
+      <OrderTrackingModal
+        isOpen={isOrderTrackingOpen}
+        onClose={() => setIsOrderTrackingOpen(false)}
+        initialOrderRef={trackedOrderRef}
+      />
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        products={searchItems}
+        onSelectProduct={(slideId, categoryId) => {
+          if (slideId !== undefined) {
+            handleOpenProductDetails(slideId);
+          } else if (categoryId) {
+            handleSelectCategoryTab(categoryId);
+          }
+        }}
+      />
+      <FlashDealsModal
+        isOpen={isFlashDealsOpen}
+        onClose={() => setIsFlashDealsOpen(false)}
+        onShopCategory={handleSelectCategoryTab}
+      />
+      <CommunityModal
+        isOpen={isCommunityOpen}
+        onClose={() => setIsCommunityOpen(false)}
+      />
+      <AboutUsModal
+        isOpen={isAboutUsOpen}
+        onClose={() => setIsAboutUsOpen(false)}
+        onExploreProducts={() => handleSelectCategoryTab('shop-all')}
+      />
+      <PhoneSupportModal
+        isOpen={isPhoneSupportOpen}
+        onClose={() => setIsPhoneSupportOpen(false)}
+      />
     </div>
   );
 };

@@ -5,8 +5,8 @@ import { pool } from './database/index.js';
 import { redisClient } from './redis/index.js';
 
 const server = app.listen(config.PORT, config.HOST, () => {
-  logger.info(`Amrutam Telemedicine Backend listening at http://${config.HOST}:${config.PORT}`);
-  logger.info(`Prometheus Metrics available at http://${config.HOST}:${config.PORT}/metrics`);
+  logger.info(`Amrutam Ayurvedic E-Commerce Backend running at http://${config.HOST}:${config.PORT}`);
+  logger.info(`API v1 Base URL: http://${config.HOST}:${config.PORT}/api/v1`);
   logger.info(`Health check available at http://${config.HOST}:${config.PORT}/health/readiness`);
 });
 
@@ -18,11 +18,13 @@ const gracefulShutdown = (signal: string) => {
     logger.info('HTTP server closed.');
 
     try {
-      await pool.end();
-      logger.info('PostgreSQL connection pool closed.');
+      if (pool) {
+        await pool.end().catch(() => {});
+        logger.info('PostgreSQL connection pool closed.');
+      }
 
       if (redisClient) {
-        await redisClient.quit();
+        await redisClient.quit().catch(() => {});
         logger.info('Redis connection closed.');
       }
     } catch (err: any) {
@@ -32,11 +34,10 @@ const gracefulShutdown = (signal: string) => {
     process.exit(0);
   });
 
-  // Force exit if cleanup takes longer than 10 seconds
   setTimeout(() => {
     logger.error('Forced shutdown due to timeout');
     process.exit(1);
-  }, 10000);
+  }, 5000);
 };
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
