@@ -151,7 +151,7 @@ export const VideoRoomModal: React.FC<VideoRoomModalProps> = ({ consultation, on
         // 3. Connect Backend WebSocket Signaling Server
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsHost = window.location.hostname || 'localhost';
-        const wsUrl = `${wsProtocol}//${wsHost}:5000/ws/telemedicine`;
+        const wsUrl = `${wsProtocol}//${wsHost}:3000/ws/telemedicine`;
 
         try {
           const socket = new WebSocket(wsUrl);

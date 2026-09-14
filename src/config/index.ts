@@ -30,6 +30,7 @@ const envSchema = z.object({
   MFA_APP_NAME: z.string().default('Amrutam Telemedicine'),
   RATE_LIMIT_WINDOW_MS: z.string().transform(val => parseInt(val, 10)).default('60000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().transform(val => parseInt(val, 10)).default('100'),
+  BIRD_API_KEY: z.string().default('bk_eu1_HecwXAJILp2f1y7PiuhLb6m3mhJ9s'),
 });
 
 const parsed = envSchema.safeParse(process.env);

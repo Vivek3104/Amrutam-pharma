@@ -29,6 +29,10 @@ class TelemedicineSignalingService {
   public init(server: HttpServer): WebSocketServer {
     this.wss = new WebSocketServer({ server, path: '/ws/telemedicine' });
 
+    this.wss.on('error', (err: any) => {
+      logger.warn({ error: err.message }, 'WebSocketServer error handled gracefully');
+    });
+
     logger.info('WebRTC Signaling & Real-Time Chat WebSocket Server initialized on /ws/telemedicine');
 
     this.wss.on('connection', (ws: WebSocket) => {

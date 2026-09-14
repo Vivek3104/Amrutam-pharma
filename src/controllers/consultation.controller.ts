@@ -25,9 +25,10 @@ export class ConsultationController {
 
   async getMyConsultations(req: Request, res: Response, next: NextFunction) {
     try {
+      const role = req.user?.role === 'DOCTOR' ? 'DOCTOR' : 'PATIENT';
       const consultations = await consultationService.getUserConsultations(
         req.user!.id,
-        req.user!.role as 'PATIENT' | 'DOCTOR'
+        role
       );
       res.status(200).json(consultations);
     } catch (err) {

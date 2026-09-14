@@ -3,9 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import { VideoRoomModal } from '../components/VideoRoomModal';
 import type { Consultation } from '../types';
 import { MOCK_CONSULTATIONS, MOCK_PRODUCTS } from '../api/client';
-import { Stethoscope, Calendar, Clock, Video, Plus, CheckCircle2, ShieldCheck, IndianRupee, FileText, UserCheck } from 'lucide-react';
+import { Stethoscope, Calendar, Clock, Video, Plus, CheckCircle2, ShieldCheck, IndianRupee, FileText, UserCheck, ArrowLeft } from 'lucide-react';
 
-export const DoctorDashboard: React.FC = () => {
+interface DoctorDashboardProps {
+  onBackToHome?: () => void;
+}
+
+export const DoctorDashboard: React.FC<DoctorDashboardProps> = ({ onBackToHome }) => {
   const { user } = useAuth();
   const [appointments] = useState<Consultation[]>(MOCK_CONSULTATIONS);
   const [activeVideoCall, setActiveVideoCall] = useState<Consultation | null>(null);
@@ -76,6 +80,29 @@ export const DoctorDashboard: React.FC = () => {
         }}>
           <CheckCircle2 size={18} color="var(--emerald-botanical)" />
           New Consultation Slot Added & Synchronized to Clinic Grid!
+        </div>
+      )}
+
+      {onBackToHome && (
+        <div style={{ marginBottom: '20px' }}>
+          <button
+            onClick={onBackToHome}
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: '#FFF',
+              padding: '8px 16px',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+            }}
+          >
+            <ArrowLeft size={16} /> Back to Amrutam Home
+          </button>
         </div>
       )}
 

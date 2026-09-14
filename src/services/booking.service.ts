@@ -5,6 +5,7 @@ import { AppError } from '../middlewares/errorHandler.js';
 import { logger } from '../utils/logger.js';
 import { bookingSagaCounter } from '../utils/metrics.js';
 import { withExponentialBackoff } from '../utils/retry.js';
+import { jobQueueService } from './jobQueue.service.js';
 
 export interface CreateBookingDTO {
   patientId: string;
@@ -117,6 +118,13 @@ export class BookingService {
 
       // Invalidate Slot Cache
       cacheDel(`doctor:${dto.doctorId}:slots`).catch(() => {});
+
+      // Enqueue asynchronous confirmation notification job (heavy task offload)
+      jobQueueService.enqueue('NOTIFICATION_DISPATCH', {
+        recipient: dto.patientId,
+        message: `Your consultation booking for slot ${dto.slotId} has been confirmed.`,
+        channel: 'EMAIL',
+      });
 
       logger.info(
         { consultationId, patientId: dto.patientId, doctorId: dto.doctorId, slotId: dto.slotId },

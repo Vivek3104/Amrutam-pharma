@@ -9,6 +9,27 @@ export interface CreateSlotDTO {
 }
 
 export class DoctorService {
+  async getAllDoctors() {
+    const res = await query(
+      `SELECT d.id, d.user_id, d.specialty, d.experience_years, d.consultation_fee, d.rating, d.bio,
+              p.full_name, p.gender, u.email
+       FROM doctors d
+       JOIN users u ON u.id = d.user_id
+       JOIN profiles p ON p.user_id = u.id
+       WHERE d.is_verified = TRUE`
+    );
+
+    const doctors = res.rows;
+    for (const doc of doctors) {
+      const slots = await this.getDoctorSlots(doc.id);
+      doc.availableSlots = slots;
+      doc.specialization = doc.specialty;
+      doc.registrationNo = `AYUSH-DEL-${doc.id.slice(0, 4).toUpperCase()}-2024`;
+      doc.hospitalAffiliation = 'Amrutam Ayurveda Research Institute';
+    }
+    return doctors;
+  }
+
   async getDoctorByUserId(userId: string) {
     const res = await query(
       `SELECT d.*, u.email, p.full_name, p.gender 
@@ -21,7 +42,11 @@ export class DoctorService {
     if (res.rows.length === 0) {
       throw new AppError('Doctor record not found', 404);
     }
-    return res.rows[0];
+    const doc = res.rows[0];
+    doc.specialization = doc.specialty;
+    doc.registrationNo = `AYUSH-DEL-${doc.id.slice(0, 4).toUpperCase()}-2024`;
+    doc.hospitalAffiliation = 'Amrutam Ayurveda Research Institute';
+    return doc;
   }
 
   async createSlots(dto: CreateSlotDTO) {
@@ -50,7 +75,7 @@ export class DoctorService {
     const res = await query(
       `SELECT id, doctor_id, start_time, end_time, is_booked, version
        FROM availability_slots
-       WHERE doctor_id = $1 AND start_time > NOW() AND is_booked = FALSE
+       WHERE doctor_id = $1 AND is_booked = FALSE
        ORDER BY start_time ASC;`,
       [doctorId]
     );

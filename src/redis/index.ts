@@ -33,6 +33,7 @@ try {
  * Cache Get Helper with Metrics
  */
 export async function cacheGet<T>(key: string): Promise<T | null> {
+  if (redisClient?.status !== 'ready') return null;
   try {
     const data = await redisClient.get(key);
     if (data) {
@@ -52,6 +53,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
  * Cache Set Helper
  */
 export async function cacheSet(key: string, value: any, ttlSeconds: number = 300): Promise<void> {
+  if (redisClient?.status !== 'ready') return;
   try {
     await redisClient.set(key, JSON.stringify(value), 'EX', ttlSeconds);
   } catch (err) {
@@ -63,10 +65,11 @@ export async function cacheSet(key: string, value: any, ttlSeconds: number = 300
  * Cache Delete Helper
  */
 export async function cacheDel(key: string): Promise<void> {
+  if (redisClient?.status !== 'ready') return;
   try {
     await redisClient.del(key);
   } catch (err) {
-    logger.warn({ key, error: (err as any).message }, 'Redis cache del failed');
+    logger.warn({ key, error: (err as any).message }, 'Redis cache delete failed');
   }
 }
 

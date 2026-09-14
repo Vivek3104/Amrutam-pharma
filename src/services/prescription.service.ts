@@ -1,6 +1,7 @@
 import { query } from '../database/index.js';
 import { encrypt, decrypt, createDigitalSignature, verifyDigitalSignature } from '../utils/crypto.js';
 import { AppError } from '../middlewares/errorHandler.js';
+import { jobQueueService } from './jobQueue.service.js';
 
 export interface CreatePrescriptionDTO {
   consultationId: string;
@@ -38,7 +39,22 @@ export class PrescriptionService {
       [dto.consultationId, dto.doctorId, dto.patientId, diagnosisEncrypted, medicinesEncrypted, notesEncrypted, digitalSignature]
     );
 
-    return res.rows[0];
+    const created = res.rows[0];
+
+    // Enqueue asynchronous archival and notification jobs (heavy tasks)
+    jobQueueService.enqueue('PRESCRIPTION_ARCHIVAL', {
+      prescriptionId: created.id,
+      doctorId: dto.doctorId,
+      patientId: dto.patientId,
+    });
+
+    jobQueueService.enqueue('NOTIFICATION_DISPATCH', {
+      recipient: dto.patientId,
+      message: 'Your Ayurvedic e-prescription has been signed and is available in your health portal.',
+      channel: 'SMS',
+    });
+
+    return created;
   }
 
   async getPrescriptionByConsultationId(consultationId: string, requestingUserId: string) {

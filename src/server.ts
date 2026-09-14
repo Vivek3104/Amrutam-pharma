@@ -3,12 +3,25 @@ import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
 import { pool } from './database/index.js';
 import { redisClient } from './redis/index.js';
+import { signalingService } from './services/signaling.service.js';
 
 const server = app.listen(config.PORT, config.HOST, () => {
-  logger.info(`Amrutam Ayurvedic E-Commerce Backend running at http://${config.HOST}:${config.PORT}`);
+  logger.info(`Amrutam Telemedicine & E-Commerce Backend running at http://${config.HOST}:${config.PORT}`);
   logger.info(`API v1 Base URL: http://${config.HOST}:${config.PORT}/api/v1`);
   logger.info(`Health check available at http://${config.HOST}:${config.PORT}/health/readiness`);
+  logger.info(`Prometheus Metrics available at http://${config.HOST}:${config.PORT}/metrics`);
 });
+
+server.on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    logger.error(`Port ${config.PORT} is already in use by another process. Please free port ${config.PORT}.`);
+  } else {
+    logger.error({ error: err.message }, 'Server listener error');
+  }
+});
+
+// Initialize WebSocket Signaling & Real-time Chat on HTTP Server
+signalingService.init(server);
 
 // Graceful Shutdown Handler
 const gracefulShutdown = (signal: string) => {

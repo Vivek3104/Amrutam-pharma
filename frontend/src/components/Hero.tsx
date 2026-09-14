@@ -356,7 +356,7 @@ export const Hero: React.FC<HeroProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '32px',
+        gap: '24px',
         flexWrap: 'wrap',
         fontSize: '0.92rem',
         fontWeight: 600,
@@ -369,6 +369,77 @@ export const Hero: React.FC<HeroProps> = ({
           className="nav-hover-link"
         >
           Shop All
+        </span>
+
+        {/* Telemedicine: Find Doctors */}
+        <span 
+          onClick={() => onNavigateTab?.('doctors' as any)} 
+          style={{
+            cursor: 'pointer',
+            padding: '4px 10px',
+            borderRadius: '20px',
+            background: 'rgba(58, 100, 59, 0.12)',
+            color: '#1A3E29',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            border: '1px solid rgba(58, 100, 59, 0.25)',
+          }}
+          className="nav-hover-link"
+        >
+          🩺 Find Doctors
+          <span style={{
+            background: '#3A643B',
+            color: '#FFF',
+            fontSize: '0.62rem',
+            padding: '1px 6px',
+            borderRadius: '10px',
+            fontWeight: 800,
+            letterSpacing: '0.04em',
+          }}>
+            BOOK
+          </span>
+        </span>
+
+        {/* Telemedicine: Patient Dashboard */}
+        <span 
+          onClick={() => onNavigateTab?.('patient-dashboard' as any)} 
+          style={{ cursor: 'pointer', padding: '4px 0' }}
+          className="nav-hover-link"
+        >
+          📋 My Consultations
+        </span>
+
+        {/* Telemedicine: Doctor Dashboard */}
+        {user?.role === 'DOCTOR' && (
+          <span 
+            onClick={() => onNavigateTab?.('doctor-dashboard' as any)} 
+            style={{
+              cursor: 'pointer',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              background: 'rgba(0, 173, 181, 0.15)',
+              color: '#007A80',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              border: '1px solid rgba(0, 173, 181, 0.3)',
+            }}
+            className="nav-hover-link"
+          >
+            🩺 Doctor Clinical Portal
+          </span>
+        )}
+
+        {/* Telemedicine: Trust & Compliance */}
+        <span 
+          onClick={() => onNavigateTab?.('compliance' as any)} 
+          style={{ cursor: 'pointer', padding: '4px 0' }}
+          className="nav-hover-link"
+        >
+          🛡️ Compliance & Trust
         </span>
         
         <span 

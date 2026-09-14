@@ -4,6 +4,10 @@ import { ProductDetailsPage } from './pages/ProductDetailsPage';
 import { CategoryProductsPage, ALL_AMRUTAM_PRODUCTS } from './pages/CategoryProductsPage';
 import { SpotlightProductDetailsPage } from './pages/SpotlightProductDetailsPage';
 import { BlogDetailsPage } from './pages/BlogDetailsPage';
+import { DoctorDirectoryPage } from './pages/DoctorDirectoryPage';
+import { Dashboard } from './pages/Dashboard';
+import { DoctorDashboard } from './pages/DoctorDashboard';
+import { TrustCompliance } from './components/TrustCompliance';
 import { HealingConcernsSection, type HealingConcern } from './components/HealingConcernsSection';
 import { EverythingAmrutamOffersSection } from './components/EverythingAmrutamOffersSection';
 import { PressAndSpotlightSection } from './components/PressAndSpotlightSection';
@@ -23,9 +27,21 @@ import { AboutUsModal } from './components/AboutUsModal';
 import { PhoneSupportModal } from './components/PhoneSupportModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { OrderTrackingModal } from './components/OrderTrackingModal';
+import { ArrowLeft } from 'lucide-react';
+
+type AppView =
+  | 'hero'
+  | 'doctors'
+  | 'patient-dashboard'
+  | 'doctor-dashboard'
+  | 'compliance'
+  | 'product-details'
+  | 'category-products'
+  | 'spotlight-product'
+  | 'blog-details';
 
 const AppContent: React.FC = () => {
-  const [currentView, setCurrentView] = useState<'hero' | 'product-details' | 'category-products' | 'spotlight-product' | 'blog-details'>('hero');
+  const [currentView, setCurrentView] = useState<AppView>('hero');
   const [selectedSlide, setSelectedSlide] = useState<HeroSlide | undefined>(undefined);
   const [selectedCategory, setSelectedCategory] = useState<string>('shop-all');
   const [selectedSpotlightId, setSelectedSpotlightId] = useState<string>('healthy-soft-hair');
@@ -138,6 +154,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF5EE' }}>
+      {/* 1. HERO HOME VIEW */}
       {currentView === 'hero' && (
         <>
           <Hero
@@ -159,6 +176,10 @@ const AppContent: React.FC = () => {
             onKnowMoreClick={handleKnowMore}
             activeSlideIndex={activeHeroIndex}
             onSlideChange={setActiveHeroIndex}
+            onNavigateTab={(tab) => {
+              setCurrentView(tab as AppView);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
           />
           <HealingConcernsSection onSelectConcern={handleSelectConcern} />
           <EverythingAmrutamOffersSection onSelectCategory={handleSelectOffersCategory} />
@@ -170,6 +191,61 @@ const AppContent: React.FC = () => {
         </>
       )}
 
+      {/* 2. TELEMEDICINE: DOCTOR DIRECTORY & CLINICAL BOOKING */}
+      {currentView === 'doctors' && (
+        <DoctorDirectoryPage
+          onBackToHome={handleBackToHome}
+          onBookingSuccess={() => {
+            setCurrentView('patient-dashboard');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
+      )}
+
+      {/* 3. TELEMEDICINE: PATIENT DASHBOARD & CONSULTATIONS */}
+      {currentView === 'patient-dashboard' && (
+        <Dashboard
+          onBackToHome={handleBackToHome}
+          onNavigateToDoctors={() => {
+            setCurrentView('doctors');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
+      )}
+
+      {/* 4. TELEMEDICINE: DOCTOR CLINICAL PORTAL */}
+      {currentView === 'doctor-dashboard' && (
+        <DoctorDashboard onBackToHome={handleBackToHome} />
+      )}
+
+      {/* 5. TELEMEDICINE: TRUST & COMPLIANCE */}
+      {currentView === 'compliance' && (
+        <div style={{ minHeight: '80vh', background: '#0B192C', padding: '40px 24px' }}>
+          <div style={{ maxWidth: '1240px', margin: '0 auto 30px auto' }}>
+            <button
+              onClick={handleBackToHome}
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: '#FFF',
+                padding: '8px 16px',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+              }}
+            >
+              <ArrowLeft size={16} /> Back to Amrutam Home
+            </button>
+          </div>
+          <TrustCompliance />
+        </div>
+      )}
+
+      {/* 6. BLOG DETAILS */}
       {currentView === 'blog-details' && (
         <BlogDetailsPage
           blogId={selectedBlogId}
@@ -178,6 +254,7 @@ const AppContent: React.FC = () => {
         />
       )}
 
+      {/* 7. SPOTLIGHT PRODUCT DETAILS */}
       {currentView === 'spotlight-product' && (
         <SpotlightProductDetailsPage
           spotlightId={selectedSpotlightId}
@@ -185,6 +262,7 @@ const AppContent: React.FC = () => {
         />
       )}
 
+      {/* 8. CATEGORY PRODUCTS */}
       {currentView === 'category-products' && (
         <CategoryProductsPage
           categoryId={selectedCategory}
@@ -196,6 +274,7 @@ const AppContent: React.FC = () => {
         />
       )}
 
+      {/* 9. PRODUCT DETAILS */}
       {currentView === 'product-details' && (
         <ProductDetailsPage
           slide={selectedSlide}
@@ -214,6 +293,14 @@ const AppContent: React.FC = () => {
       <AuthModal
         onOpenAdminDashboard={() => setIsAdminDashboardOpen(true)}
         onOpenTracking={handleOpenTracking}
+        onNavigateToDoctorDashboard={() => {
+          setCurrentView('doctor-dashboard');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onNavigateToPatientDashboard={() => {
+          setCurrentView('patient-dashboard');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
       />
       <AdminDashboardModal
         isOpen={isAdminDashboardOpen}

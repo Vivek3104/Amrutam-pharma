@@ -95,11 +95,11 @@ export const MOCK_DOCTORS: Doctor[] = [
     consultationFee: 750,
     rating: 4.95,
     bio: 'Chief Medical Officer specializing in Panchakarma detox, chronic metabolic disorders, and digestive health with 14+ years of clinical excellence.',
-    imageUrl: 'https://images.unsplash.com/photo-1594824813566-88855ce78347?auto=format&fit=crop&q=80&w=400',
+    imageUrl: '/images/doctors/ananya_sharma.jpg',
     availableSlots: [
-      { id: 'slot-101', doctorId: 'doc-1', startTime: '2026-09-13T10:00:00.000Z', endTime: '2026-09-13T10:30:00.000Z', isBooked: false },
-      { id: 'slot-102', doctorId: 'doc-1', startTime: '2026-09-13T11:00:00.000Z', endTime: '2026-09-13T11:30:00.000Z', isBooked: false },
-      { id: 'slot-103', doctorId: 'doc-1', startTime: '2026-09-13T14:30:00.000Z', endTime: '2026-09-13T15:00:00.000Z', isBooked: false },
+      { id: 'slot-101', doctorId: 'doc-1', startTime: '2026-09-15T10:00:00.000Z', endTime: '2026-09-15T10:30:00.000Z', isBooked: false },
+      { id: 'slot-102', doctorId: 'doc-1', startTime: '2026-09-15T11:00:00.000Z', endTime: '2026-09-15T11:30:00.000Z', isBooked: false },
+      { id: 'slot-103', doctorId: 'doc-1', startTime: '2026-09-15T14:30:00.000Z', endTime: '2026-09-15T15:00:00.000Z', isBooked: false },
     ],
   },
   {
@@ -113,10 +113,10 @@ export const MOCK_DOCTORS: Doctor[] = [
     consultationFee: 900,
     rating: 4.9,
     bio: 'Renowned Specialist formulating clinical herbal remedies for psoriasis, eczema, acne vulgaris, and natural skin revitalization.',
-    imageUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400',
+    imageUrl: '/images/doctors/rajesh_varma.jpg',
     availableSlots: [
-      { id: 'slot-201', doctorId: 'doc-2', startTime: '2026-09-13T12:00:00.000Z', endTime: '2026-09-13T12:30:00.000Z', isBooked: false },
-      { id: 'slot-202', doctorId: 'doc-2', startTime: '2026-09-13T16:00:00.000Z', endTime: '2026-09-13T16:30:00.000Z', isBooked: false },
+      { id: 'slot-201', doctorId: 'doc-2', startTime: '2026-09-15T12:00:00.000Z', endTime: '2026-09-15T12:30:00.000Z', isBooked: false },
+      { id: 'slot-202', doctorId: 'doc-2', startTime: '2026-09-15T16:00:00.000Z', endTime: '2026-09-15T16:30:00.000Z', isBooked: false },
     ],
   },
   {
@@ -130,10 +130,10 @@ export const MOCK_DOCTORS: Doctor[] = [
     consultationFee: 650,
     rating: 4.98,
     bio: 'Integrative Gynaecologist specializing in PCOS/PCOD management, fertility enhancement, and postpartum restoration.',
-    imageUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400',
+    imageUrl: '/images/doctors/meera_nambiar.jpg',
     availableSlots: [
-      { id: 'slot-301', doctorId: 'doc-3', startTime: '2026-09-14T09:30:00.000Z', endTime: '2026-09-14T10:00:00.000Z', isBooked: false },
-      { id: 'slot-302', doctorId: 'doc-3', startTime: '2026-09-14T15:00:00.000Z', endTime: '2026-09-14T15:30:00.000Z', isBooked: false },
+      { id: 'slot-301', doctorId: 'doc-3', startTime: '2026-09-15T09:30:00.000Z', endTime: '2026-09-15T10:00:00.000Z', isBooked: false },
+      { id: 'slot-302', doctorId: 'doc-3', startTime: '2026-09-15T15:00:00.000Z', endTime: '2026-09-15T15:30:00.000Z', isBooked: false },
     ],
   },
 ];
@@ -147,8 +147,8 @@ export const MOCK_CONSULTATIONS: Consultation[] = [
     slotId: 'slot-101',
     status: 'SCHEDULED',
     type: 'VIDEO',
-    startTime: '2026-09-13T10:00:00.000Z',
-    endTime: '2026-09-13T10:30:00.000Z',
+    startTime: '2026-09-15T10:00:00.000Z',
+    endTime: '2026-09-15T10:30:00.000Z',
     payment: { id: 'pay-01', amount: 750, status: 'SUCCESS' },
     prescription: {
       diagnosis: 'Vata-Pitta Imbalance & Indigestion (Agnimandya)',
@@ -160,3 +160,86 @@ export const MOCK_CONSULTATIONS: Consultation[] = [
     },
   },
 ];
+
+const LOCAL_DOCTOR_AVATARS = [
+  '/images/doctors/ananya_sharma.jpg',
+  '/images/doctors/rajesh_varma.jpg',
+  '/images/doctors/meera_nambiar.jpg',
+];
+
+// Telemedicine API Service Wrappers
+export async function fetchDoctors(specialty?: string): Promise<Doctor[]> {
+  try {
+    const url = specialty && specialty !== 'All Specialties' 
+      ? `/search/doctors?specialty=${encodeURIComponent(specialty)}`
+      : '/doctors';
+    const res = await apiClient.get(url);
+    if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+      return res.data.map((d: any, idx: number) => ({
+        id: d.doctor_id || d.id,
+        userId: d.user_id,
+        fullName: d.full_name || d.fullName,
+        specialization: d.specialty || d.specialization,
+        registrationNo: d.registrationNo || `AYUSH-DEL-20${14 + idx}-8841`,
+        hospitalAffiliation: d.hospitalAffiliation || 'Amrutam Ayurveda Research Institute',
+        experienceYears: d.experience_years || d.experienceYears || 10,
+        consultationFee: parseFloat(d.consultation_fee || d.consultationFee || 500),
+        rating: parseFloat(d.rating || 4.9),
+        bio: d.bio || 'Experienced Ayurvedic Clinician',
+        imageUrl: d.imageUrl || LOCAL_DOCTOR_AVATARS[idx % LOCAL_DOCTOR_AVATARS.length],
+        availableSlots: d.availableSlots || [],
+      }));
+    }
+  } catch (err) {
+    console.warn('Backend doctors fetch failed, using mock doctors catalog');
+  }
+  return MOCK_DOCTORS;
+}
+
+export async function fetchMyConsultations(): Promise<Consultation[]> {
+  try {
+    const res = await apiClient.get('/consultations/my');
+    if (res.data && Array.isArray(res.data)) {
+      return res.data;
+    }
+  } catch {
+    // fallback
+  }
+  return MOCK_CONSULTATIONS;
+}
+
+export async function fetchPrescription(consultationId: string) {
+  try {
+    const res = await apiClient.get(`/prescriptions/consultation/${consultationId}`);
+    return res.data;
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function fetchAnalyticsOverview() {
+  try {
+    const res = await apiClient.get('/analytics/overview');
+    return res.data;
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function fetchAnalyticsTrends() {
+  try {
+    const res = await apiClient.get('/analytics/trends');
+    return res.data;
+  } catch (err) {
+    return [];
+  }
+}
+
+export async function fetchAuditLogs(limit = 50, offset = 0) {
+  try {
+    const res = await apiClient.get(`/audit/logs?limit=${limit}&offset=${offset}`);
+    return res.data;
+  } catch (err) {
+    return { logs: [], totalCount: 0 };
+  }
+}
